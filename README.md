@@ -57,7 +57,6 @@ Built on: **ClickHouse · Jaeger · OpenTelemetry · FastAPI · Streamlit · Cla
 - **Proactive monitoring**: 60s background loop detects anomalies and generates Claude-powered RCA + recommendations
 - **Conversational interface**: Claude Sonnet agent with 24 real-time tools — answer any governance/eval/cost/trace question in plain English
 - **MCP server**: expose all 24 tools to Claude Code and other AI agents
-- **EvalGov CLI**: full terminal interface for HITL, CBs, incidents, trust, findings, costs
 
 ### Framework Support
 
@@ -109,7 +108,7 @@ Built on: **ClickHouse · Jaeger · OpenTelemetry · FastAPI · Streamlit · Cla
               ┌──────────────────────────────────┐│
               │  EvalGov Agent  :8003            ││
               │  Proactive monitor + RCA         ◄┘
-              │  Chat agent · MCP server · CLI   │
+              │  Chat agent · MCP server         │
               └──────────────────────────────────┘
 
               ┌──────────────────────────────────┐
@@ -265,8 +264,6 @@ opt-aieval/
 │   ├── mcp_server.py                MCP SSE server exposing all 24 tools
 │   └── db.py                        ClickHouse client for gov_agent_findings + analytics
 │
-├── evalgov_cli/                     EvalGov CLI
-│   └── main.py                      Typer CLI: health, ask, hitl, cb, incidents, findings
 │
 ├── benchmarks/                      Offline benchmark test harness
 │   ├── runner.py                    CLI: run suites, compare baseline
@@ -585,23 +582,17 @@ The EvalGov Agent (`:8003`) is the intelligence and interaction layer on top of 
 "Which agents have trust scores below 0.5?"
 ```
 
-**MCP + CLI** — expose all 24 tools to external systems:
+**MCP** — expose all tools to Claude Code and other AI agents:
 
 ```bash
-# Add to Claude Code
 claude mcp add evalgov http://localhost:8003/mcp/sse
-
-# Terminal
-evalgov ask "are there any critical findings?"
-evalgov hitl list --status pending
-evalgov cb reset searcher
 ```
 
 ### Chat UI (page 14)
 
 Two-panel layout: chat (left) + live findings (right). Findings grouped by severity with expandable RCA + recommendation from Claude. Acknowledge / Resolve per finding.
 
-See [`docs/evalgov-agent.md`](docs/evalgov-agent.md) for the complete tool reference, monitor logic, findings lifecycle, and CLI command reference.
+See [`docs/evalgov-agent.md`](docs/evalgov-agent.md) for the complete tool reference, monitor logic, and findings lifecycle.
 
 ---
 
@@ -855,20 +846,6 @@ docker exec -it aieval-clickhouse clickhouse-client
 # Benchmark runner
 python benchmarks/runner.py --suite unit --name "my-run"
 python benchmarks/runner.py --suite all --compare-baseline
-
-# EvalGov CLI
-evalgov health                            # Service health check
-evalgov ask "what's wrong right now?"     # Natural language query
-evalgov hitl list                         # Pending HITL requests
-evalgov hitl approve <request_id>
-evalgov hitl reject  <request_id> --notes "reason"
-evalgov cb list                           # Circuit breaker states
-evalgov cb reset <agent_role>
-evalgov incidents list
-evalgov agents                            # Agent trust + CB summary
-evalgov findings list --severity critical
-evalgov costs --hours 24
-evalgov scores
 
 # Connect Claude Code to EvalGov tools via MCP
 claude mcp add evalgov http://localhost:8003/mcp/sse

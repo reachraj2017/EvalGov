@@ -12,7 +12,7 @@ The EvalGov Intelligence Agent is the intelligence and interaction layer on top 
 
 2. **Conversational interface** — a Claude-backed agent with direct access to 44 real-time tools covering every part of the governance and eval system. Operators ask questions in plain English; the agent fetches real data, correlates signals, and can take actions (approve HITL, reset circuit breakers, resolve incidents, bulk-clear findings). Can retrieve actual prompt text, agent responses, eval scores with reasoning, benchmark definitions, safety events, policy decisions, configuration thresholds, and more.
 
-3. **External access** — an MCP server for Claude Code and other AI agents, and a CLI for terminal operators and machine-to-machine use.
+3. **External access** — an MCP server for Claude Code and other AI agents.
 
 It is a separate FastAPI service (`evalgov-agent`, port 8003) that wraps the existing `governance-service` REST API and ClickHouse — no new data collection. All signals were already being gathered; this layer adds intelligence and interaction.
 
@@ -271,7 +271,7 @@ The monitor runs as a background `asyncio.Task` started at service startup. Ever
    signal_data (JSON), affected_agent, status, acknowledged_by, created_at, updated_at
    ```
 
-**Important:** The RCA is generated **once per finding** at detection time and persisted. By the time an operator opens the findings panel, asks the chat agent about it, or the CLI lists findings, the RCA text is already written in ClickHouse — the UI and agent are just reading rows. There is no on-demand LLM call triggered by viewing a finding.
+**Important:** The RCA is generated **once per finding** at detection time and persisted. By the time an operator opens the findings panel or asks the chat agent about it, the RCA text is already written in ClickHouse — the UI and agent are just reading rows. There is no on-demand LLM call triggered by viewing a finding.
 
 ### Findings lifecycle
 
@@ -281,7 +281,7 @@ Monitor detects anomaly
         ▼
  INSERT → status: 'active'
         │
-        ├── Operator clicks Acknowledge in UI / CLI
+        ├── Operator clicks Acknowledge in UI
         │         └── INSERT new row, status: 'acknowledged'
         │
         └── Operator clicks Resolve / underlying issue fixed
@@ -434,69 +434,6 @@ All 44 tools are available to both the Chat UI (via Claude's tool use) and MCP c
 
 ---
 
-## Component 4: EvalGov CLI
-
-### Installation
-
-```bash
-pip install typer rich httpx
-# Set env vars (or they default to localhost):
-export EVALGOV_AGENT_URL=http://localhost:8003
-export GOVERNANCE_SERVICE_URL=http://localhost:8002
-```
-
-### Commands
-
-```bash
-# System
-evalgov health                              # Check agent + governance service health
-
-# Natural language
-evalgov ask "what's wrong right now?"       # Ask the agent anything
-evalgov ask "why is analyzer CB open?"
-
-# HITL management
-evalgov hitl list                           # Pending HITL requests (default)
-evalgov hitl list --status approved         # Filter by status
-evalgov hitl approve <request_id>           # Approve (unblocks agent)
-evalgov hitl reject  <request_id> --notes "reason"
-
-# Incidents
-evalgov incidents list                      # Open incidents
-evalgov incidents list --status resolved
-evalgov incidents resolve <incident_id>
-
-# Circuit breakers
-evalgov cb list                             # All CB states
-evalgov cb list --agent searcher            # Filter by agent
-evalgov cb reset searcher                   # Manually close CB
-evalgov cb quarantine searcher --reason "Anomalous behavior"
-
-# Agent status
-evalgov agents                              # Trust score + CB state for all agents
-evalgov trust                               # Trust score breakdown
-evalgov trust --agent analyzer
-evalgov rogue                               # Rogue detection assessments
-
-# Findings
-evalgov findings list                       # Active findings
-evalgov findings list --severity critical
-evalgov findings ack <finding_id>           # Acknowledge
-evalgov findings ack <finding_id> --by ops-team
-
-# Observability
-evalgov traces                              # Recent traces (last 6h)
-evalgov traces --agent searcher --hours 24
-evalgov costs                               # Cost breakdown (last 24h)
-evalgov scores                              # Eval scores by metric
-
-# All commands support --json for machine-readable output
-evalgov hitl list --json
-evalgov findings list --json | jq '.[] | select(.severity == "critical")'
-```
-
----
-
 ## Chat UI Layout
 
 The Streamlit page (`14_EvalGov_Agent.py`) uses a two-panel layout:
@@ -548,7 +485,7 @@ The Streamlit page (`14_EvalGov_Agent.py`) uses a two-panel layout:
 | `AGENT_MODEL` | `claude-sonnet-4-6` | Claude model for chat + RCA |
 | `MONITOR_POLL_SECONDS` | `60` | Proactive monitor poll interval |
 | `HITL_TIMEOUT_MINUTES` | `15` | Minutes before HITL timeout becomes a finding |
-| `EVALGOV_AGENT_URL` | `http://localhost:8003` | Used by eval-ui and CLI |
+| `EVALGOV_AGENT_URL` | `http://localhost:8003` | Used by eval-ui and MCP clients |
 
 ---
 
@@ -605,7 +542,7 @@ EvalGov Agent (page 14):
   → Proactive monitor reads the same signals every 60s
   → Generates RCA+recommendations via Claude when anomalies are found
   → Chat agent surfaces the same data conversationally
-  → Actions taken via chat/CLI write through governance-service REST API
+  → Actions taken via chat write through governance-service REST API
   → MCP server exposes all tools to Claude Code and other AI agents
 
 Webhook delivery (Phase 6 — pending):
@@ -646,8 +583,6 @@ evalgov_agent/
 ├── requirements.txt fastapi, uvicorn, clickhouse-driver, anthropic, mcp, httpx
 └── Dockerfile       python:3.11-slim, port 8003
 
-evalgov_cli/
-└── main.py          Typer CLI: health, ask, hitl, incidents, cb, agents, trust, rogue,
                      findings, traces, costs, scores
 
 eval_ui/pages/
