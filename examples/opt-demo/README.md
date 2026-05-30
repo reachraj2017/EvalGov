@@ -1,22 +1,9 @@
-# Multi-Agent Demo 2 (Primary Demo)
+# Multi-Agent Demo
 
 A 4-agent system built with **Google ADK** and **OpenAI** with full multi-turn conversation tracking, smart rule-based query routing, and complete OTel instrumentation for the AI Eval & Observability Platform.
 
 > **Platform must be running** before launching the demo.
 > From the repo root: `make up`
-
----
-
-## What Makes This Demo Different from Demo 1
-
-| Feature | Demo 1 | Demo 2 |
-|---|---|---|
-| Query routing | LLM decides (unreliable on multi-step) | Rule-based classifier (reliable) |
-| Multi-step pipeline | Orchestrator-driven | Explicit code: searcher → summarizer → translator |
-| `conversation.id` propagation | Orchestrator only | All agent spans (orchestrator + sub-agents) |
-| Target language | Hindi only | Any language specified in query |
-| Summary word count | Fixed 20 words | Extracted from query (e.g. "in 30 words") |
-| Backend | Streamlit direct | FastAPI + Streamlit |
 
 ---
 
