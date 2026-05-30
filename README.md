@@ -54,7 +54,6 @@ Built on: **ClickHouse · Jaeger · OpenTelemetry · FastAPI · Streamlit · Cla
 - **Content quality gates**: post-hoc watcher fires every 30s; `flag → hold → block` decision ladder
 
 ### EvalGov Intelligence Agent
-- **Proactive monitoring**: 60s background loop detects anomalies and generates Claude-powered RCA + recommendations
 - **Conversational interface**: Claude Sonnet agent with 44 real-time tools — answer any governance/eval/cost/trace question in plain English
 - **MCP server**: expose all 44 tools to Claude Code and other AI agents
 
@@ -107,8 +106,8 @@ Built on: **ClickHouse · Jaeger · OpenTelemetry · FastAPI · Streamlit · Cla
                                       └──────────┬───────────┘
               ┌──────────────────────────────────┐│
               │  EvalGov Agent  :8003            ││
-              │  Proactive monitor + RCA         ◄┘
-              │  Chat agent · MCP server         │
+              │  Chat agent · MCP server         ◄┘
+              │  Live system state panel         │
               └──────────────────────────────────┘
 
               ┌──────────────────────────────────┐
@@ -116,7 +115,7 @@ Built on: **ClickHouse · Jaeger · OpenTelemetry · FastAPI · Streamlit · Cla
               │  Eval · Traces · Benchmarks      │
               │  AI Governance (13 categories)   │
               │  Governance Enforcement          │
-              │  EvalGov Agent (chat + findings) │
+              │  EvalGov Agent (chat + system state) │
               └──────────────────────────────────┘
 ```
 
@@ -131,8 +130,7 @@ Agent runs → OTel spans → Collector → ClickHouse (stored)
                                              → CB update
                                              → trust score update
 
-ClickHouse + Governance Service → EvalGov Agent (every 60s)
-                                → Claude generates RCA → findings stored
+ClickHouse + Governance Service → EvalGov Agent → live system state panel
 ```
 
 ---
@@ -201,7 +199,7 @@ opt-aieval/
 │   ├── instrumentation-guide.md     Full span schema, attribute reference, evaluator tables
 │   ├── gov-instrument-guide.md      Phase 2 gate decision flow, HITL patterns, CB guide
 │   ├── eval-metrics-dashboard-guide.md  Filter behaviour + Option B span-level fix guide
-│   ├── evalgov-agent.md             EvalGov Agent — tool reference, monitor logic, CLI
+│   ├── evalgov-agent.md             EvalGov Agent — tool reference, chat agent, MCP server
 │   ├── governance-enforcement-architecture.md  Three-layer enforcement design
 │   ├── hitl-and-gate-ui-reference.md  HITL and gate check UI reference
 │   └── packaging-recommendations-v2.md  SDK packaging status and v1 roadmap
@@ -246,7 +244,7 @@ opt-aieval/
 │       ├── 2_Eval_Measurements.py   Traces, Scores, Regression, Benchmarks, Conversations
 │       ├── 10_AI_Governance.py      13 governance categories, policy engine, compliance
 │       ├── 11_Governance_Enforcement.py  Circuit breakers, HITL approvals, quality gates
-│       └── 14_EvalGov_Agent.py      Chat UI + live findings panel
+│       └── 14_EvalGov_Agent.py      Chat UI + live system state panel
 │
 ├── governance_service/              Governance FastAPI service (:8002)
 │   ├── main.py                      90+ REST endpoints across all governance domains
@@ -258,11 +256,10 @@ opt-aieval/
 │   └── anomaly_detector.py          Statistical anomaly detection vs baselines
 │
 ├── evalgov_agent/                   EvalGov Intelligence Agent (:8003)
-│   ├── agent.py                     Claude chat agent with 24-tool loop + RCA generator
+│   ├── agent.py                     Claude chat agent with 44-tool loop
 │   ├── tools.py                     Tool implementations + Anthropic schemas
-│   ├── monitor.py                   Proactive monitor: 60s poll, anomaly detect, RCA
 │   ├── mcp_server.py                MCP SSE server exposing all 44 tools
-│   └── db.py                        ClickHouse client for gov_agent_findings + analytics
+│   └── db.py                        ClickHouse client for analytics queries
 │
 │
 ├── benchmarks/                      Offline benchmark test harness
@@ -457,7 +454,7 @@ The Streamlit UI at **http://localhost:8501** provides the main evaluation and g
 | **2 · Eval Measurements** | Traces, Scores, Regression, Benchmarks, Conversations, Eval Metrics (68 metrics / 9 categories), Prompt Analysis |
 | **10 · AI Governance** | 13 governance categories, policy engine, anomaly events, compliance reports |
 | **11 · Governance Enforcement** | Circuit breakers, trust scores, HITL approvals, quality gates, on-demand enforcement cycle |
-| **14 · EvalGov Agent** | Chat UI + live findings panel |
+| **14 · EvalGov Agent** | Chat UI + live system state panel |
 
 ### Key Features
 
@@ -570,8 +567,6 @@ The EvalGov Agent (`:8003`) is the intelligence and interaction layer on top of 
 
 ### Three Capabilities
 
-**Proactive Monitor** — runs in the background (60s poll). Detects anomalies across all governance signals (open CBs, HITL timeouts, rogue agents, critical incidents, trust score drops). Generates Claude-powered RCA and recommendations stored as persistent findings.
-
 **Chat Agent** — Claude Sonnet with 44 real-time tools:
 
 ```
@@ -590,9 +585,9 @@ claude mcp add evalgov http://localhost:8003/mcp/sse
 
 ### Chat UI (page 14)
 
-Two-panel layout: chat (left) + live findings (right). Findings grouped by severity with expandable RCA + recommendation from Claude. Acknowledge / Resolve per finding.
+Two-panel layout: chat (left) + live system state (right). The right panel shows active HITL requests, open incidents, circuit breaker states, and policy violations — auto-refreshes every 60s.
 
-See [`docs/evalgov-agent.md`](docs/evalgov-agent.md) for the complete tool reference, monitor logic, and findings lifecycle.
+See [`docs/evalgov-agent.md`](docs/evalgov-agent.md) for the complete tool reference and chat agent details.
 
 ---
 
@@ -813,7 +808,6 @@ See [`docs/eval-metrics-dashboard-guide.md`](docs/eval-metrics-dashboard-guide.m
 | `CLICKHOUSE_PORT` | `9000` | ClickHouse native port |
 | `GOVERNANCE_SERVICE_URL` | `http://localhost:8002` | Governance service URL |
 | `EVALGOV_AGENT_URL` | `http://localhost:8003` | EvalGov agent URL |
-| `MONITOR_POLL_SECONDS` | `60` | Proactive monitor poll interval |
 | `HITL_TIMEOUT_MINUTES` | `15` | Minutes before HITL timeout triggers a finding |
 | `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama endpoint (if using local models) |
 
