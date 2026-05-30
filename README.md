@@ -55,8 +55,8 @@ Built on: **ClickHouse · Jaeger · OpenTelemetry · FastAPI · Streamlit · Cla
 
 ### EvalGov Intelligence Agent
 - **Proactive monitoring**: 60s background loop detects anomalies and generates Claude-powered RCA + recommendations
-- **Conversational interface**: Claude Sonnet agent with 24 real-time tools — answer any governance/eval/cost/trace question in plain English
-- **MCP server**: expose all 24 tools to Claude Code and other AI agents
+- **Conversational interface**: Claude Sonnet agent with 44 real-time tools — answer any governance/eval/cost/trace question in plain English
+- **MCP server**: expose all 44 tools to Claude Code and other AI agents
 
 ### Framework Support
 
@@ -261,7 +261,7 @@ opt-aieval/
 │   ├── agent.py                     Claude chat agent with 24-tool loop + RCA generator
 │   ├── tools.py                     Tool implementations + Anthropic schemas
 │   ├── monitor.py                   Proactive monitor: 60s poll, anomaly detect, RCA
-│   ├── mcp_server.py                MCP SSE server exposing all 24 tools
+│   ├── mcp_server.py                MCP SSE server exposing all 44 tools
 │   └── db.py                        ClickHouse client for gov_agent_findings + analytics
 │
 │
@@ -572,7 +572,7 @@ The EvalGov Agent (`:8003`) is the intelligence and interaction layer on top of 
 
 **Proactive Monitor** — runs in the background (60s poll). Detects anomalies across all governance signals (open CBs, HITL timeouts, rogue agents, critical incidents, trust score drops). Generates Claude-powered RCA and recommendations stored as persistent findings.
 
-**Chat Agent** — Claude Sonnet with 24 real-time tools:
+**Chat Agent** — Claude Sonnet with 44 real-time tools:
 
 ```
 "What's wrong right now?"
