@@ -10,9 +10,11 @@ The EvalGov Intelligence Agent is the intelligence and interaction layer on top 
 
 1. **Conversational interface** — a Claude-backed agent with direct access to 44 real-time tools covering every part of the governance and eval system. Operators ask questions in plain English; the agent fetches real data, correlates signals, and can take actions (approve HITL, reset circuit breakers, resolve incidents). Can retrieve actual prompt text, agent responses, eval scores with reasoning, benchmark definitions, safety events, policy decisions, configuration thresholds, and more.
 
-2. **Live system state panel** — the right side of the UI auto-refreshes every 60s showing active HITL requests, open incidents, circuit breaker states, and policy violations.
+2. **On-demand RCA** — ask the agent why a circuit breaker opened, what caused a trust score drop, or what triggered a safety event. It pulls data from governance signals, OTel traces, and eval scores simultaneously to produce a specific root cause and recommended action — not a generic summary.
 
-3. **External access** — an MCP server for Claude Code and other AI agents.
+3. **Live system state panel** — the right side of the UI auto-refreshes every 60s showing active HITL requests, open incidents, circuit breaker states, and policy violations. No setup required — it reads directly from the governance service.
+
+4. **External access** — an MCP server for Claude Code and other AI agents.
 
 It is a separate FastAPI service (`evalgov-agent`, port 8003) that wraps the existing `governance-service` REST API and ClickHouse — no new data collection. All signals were already being gathered; this layer adds intelligence and interaction.
 

@@ -55,6 +55,8 @@ Built on: **ClickHouse · Jaeger · OpenTelemetry · FastAPI · Streamlit · Cla
 
 ### EvalGov Intelligence Agent
 - **Conversational interface**: Claude Sonnet agent with 44 real-time tools — answer any governance/eval/cost/trace question in plain English
+- **On-demand RCA**: ask the agent why a circuit breaker opened, what caused a trust score drop, or what a safety event means — it correlates signals across governance, traces, and eval scores to give a specific root cause and recommended action
+- **Live system state**: UI panel auto-refreshes every 60s showing active HITL requests, open incidents, circuit breaker states, and policy violations
 - **MCP server**: expose all 44 tools to Claude Code and other AI agents
 
 ### Framework Support
