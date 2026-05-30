@@ -1,6 +1,16 @@
-# SLM Execution: HuggingFace Models in Axis 3
+# Local & Specialized Model Execution
 
-Axis 3 (SLM Specialization) replaces gpt-4o-mini for three specific tasks — translation, summarization, and search synthesis — with purpose-built small language models (SLMs) from HuggingFace. This document explains what each model does, where and how it runs, and what the operational implications are.
+## Why this option exists
+
+AI evaluation and governance platforms need to work with more than just hosted LLM APIs. Teams often need to:
+
+- **Test with local models** — run inference fully offline without sending data to external APIs
+- **Use specialized models** — purpose-built SLMs that outperform general LLMs on specific narrow tasks (translation, summarization) at a fraction of the cost
+- **Simulate hybrid model scenarios** — where some tasks route to local models and others fall back to a hosted LLM based on confidence, cost, or latency constraints
+
+The demo supports this through a confidence-gated hybrid mode: three HuggingFace SLMs handle translation, summarization, and search synthesis locally. If a model's output falls below a confidence threshold, the task automatically escalates to gpt-4o-mini. This lets you observe how a real hybrid routing decision plays out — including which model was used, escalation rates, and cost differences — all visible in the Eval UI.
+
+This document explains what each model does, where and how it runs, and what the operational implications are.
 
 ---
 
@@ -12,7 +22,7 @@ All three SLMs run **locally on the host machine**, **in-process** within the op
 - **Not** calling any external API
 - **Not** a separate service or sidecar
 
-When `AXIS3_SLM_ENABLED=true` in `.env` and the Streamlit app starts, models are loaded into the Python process on first use and kept resident in memory for the duration of the session. Inference happens on the **CPU** — no GPU required for any of the three models.
+When `AXIS3_SLM_ENABLED=true` in `.env` and the Streamlit app starts, the local models are loaded into the Python process on first use and kept resident in memory for the duration of the session. Inference happens on the **CPU** — no GPU required for any of the three models.
 
 ---
 
@@ -34,7 +44,7 @@ Subsequent runs (same session or new session) load from cache without network ac
 ## The three models
 
 ### 1. NLLB-200 — Translation
-**File**: `axis3/translator_slm.py`  
+**File**: `examples/opt-demo/axis3/translator_slm.py`  
 **Model ID**: `facebook/nllb-200-distilled-600M`  
 **Parameters**: 0.6B  
 **Architecture**: Seq2Seq (encoder-decoder)
@@ -66,7 +76,7 @@ NLLB-200 (No Language Left Behind) is a purpose-built multilingual translation m
 ---
 
 ### 2. BART-large-cnn — Summarization
-**File**: `axis3/summarizer_slm.py`  
+**File**: `examples/opt-demo/axis3/summarizer_slm.py`  
 **Model ID**: `facebook/bart-large-cnn`  
 **Parameters**: ~0.4B (400M)  
 **Architecture**: Seq2Seq (encoder-decoder), pre-trained on CNN/DailyMail news
@@ -89,7 +99,7 @@ BART-large-cnn is pre-trained specifically for abstractive news summarization an
 ---
 
 ### 3. Qwen3-0.6B — Search Synthesis
-**File**: `axis3/search_slm.py`  
+**File**: `examples/opt-demo/axis3/search_slm.py`  
 **Model ID**: `Qwen/Qwen3-0.6B`  
 **Parameters**: 0.6B  
 **Architecture**: Decoder-only causal LM (like GPT)
