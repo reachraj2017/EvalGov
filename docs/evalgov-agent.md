@@ -438,12 +438,3 @@ eval_ui/pages/
 └── 14_EvalGov_Agent.py   Streamlit chat UI + live system state sidebar
 ```
 
----
-
-## Related Documents
-
-- `docs/llm-call-points.md` — **complete inventory of every LLM API call in the system**, models used, trigger conditions, token profiles, and cost estimates
-- `docs/buildfwd-focus.md` — overall roadmap and next phases
-- `docs/governance-enforcement-architecture.md` — three-layer enforcement architecture
-- `docs/hitl-and-gate-ui-reference.md` — HITL and gate check UI reference
-- `docs/agent-lightning-optimization.md` — AL-1/AL-2/AL-3 optimization phases
