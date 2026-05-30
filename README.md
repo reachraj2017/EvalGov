@@ -180,7 +180,7 @@ docker compose up -d
 cd examples/opt-demo
 cp .env.example .env   # set OPENAI_API_KEY or ANTHROPIC_API_KEY
 pip install -r requirements.txt
-uvicorn api:app --host 0.0.0.0 --port 8010 --workers 1
+uvicorn api:app --host 0.0.0.0 --port 8080 --workers 1
 
 # Terminal 3 — chat UI (same demo directory)
 cd examples/opt-demo
@@ -616,7 +616,7 @@ docker compose up -d
 cd examples/opt-demo
 cp .env.example .env   # set OPENAI_API_KEY or ANTHROPIC_API_KEY
 pip install -r requirements.txt
-uvicorn api:app --host 0.0.0.0 --port 8010 --workers 1
+uvicorn api:app --host 0.0.0.0 --port 8080 --workers 1
 
 # Terminal 3 — chat UI (opt-aieval/examples/opt-demo/)
 cd examples/opt-demo

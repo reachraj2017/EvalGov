@@ -147,7 +147,7 @@ OPENAI_MODEL=gpt-4o-mini        # optional, default
 ### 5. Start the backend
 
 ```bash
-uvicorn api:app --host 0.0.0.0 --port 8010 --workers 1
+uvicorn api:app --host 0.0.0.0 --port 8080 --workers 1
 ```
 
 > **Use `--workers 1`** — multiple workers have separate memory and will cause duplicate eval rows due to in-memory dedup state not being shared between processes.
