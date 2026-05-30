@@ -742,6 +742,16 @@ TOOL_SCHEMAS = [
         },
     },
     {
+        "name": "get_gate_audit_log",
+        "description": "Get gate check summary statistics: total gate checks and blocks in the last N hours.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "hours": {"type": "integer", "description": "Look-back window in hours (default 6)"},
+            },
+        },
+    },
+    {
         "name": "get_policy_violations",
         "description": "Get summary of policy engine violations (policy flags and blocks recorded in the audit log).",
         "input_schema": {

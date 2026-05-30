@@ -27,7 +27,7 @@ It is a separate FastAPI service (`evalgov-agent`, port 8003) that wraps the exi
 │  ┌────────────────┐  ┌──────────────────┐  ┌──────────────────┐  │
 │  │ Proactive       │  │  Chat Agent      │  │   MCP Server     │  │
 │  │ Monitor         │  │  (Claude Sonnet) │  │  (/mcp/sse)      │  │
-│  │ (60s poll loop) │  │  39 tools        │  │  39 tools        │  │
+│  │ (60s poll loop) │  │  44 tools        │  │  44 tools        │  │
 │  └───────┬─────────┘  └──────┬───────────┘  └──────┬───────────┘  │
 │          │                   │                      │               │
 │  ┌───────▼───────────────────▼──────────────────────▼────────────┐ │
@@ -116,12 +116,12 @@ This section traces the exact path from user prompt to response. **MCP is not in
          ▼
 4. agent.py  chat()
      - builds messages = history + [{"role": "user", "content": message}]
-     - calls Anthropic API  client.messages.create()
-       with: model, system_prompt, TOOL_SCHEMAS (39 schemas), messages
+     - calls LiteLLM  litellm.completion()
+       with: model, system_prompt, TOOL_SCHEMAS (44 schemas), messages
          │
          ▼
 5. Claude (claude-sonnet-4-6)
-     - reads the 39 tool schemas in the request
+     - reads the 44 tool schemas in the request
      - selects which tools to call to answer the question
      - returns stop_reason="tool_use" with tool_use blocks
          │
@@ -197,12 +197,12 @@ Tools that use this path: `get_recent_traces`, `get_agent_performance`, `get_cos
 
 ## Chat UI vs MCP: Two Separate Entry Points, Same Tool Layer
 
-The same 39 tools are accessible through two completely independent paths:
+The same 44 tools are accessible through two completely independent paths:
 
 | | Chat UI | MCP / Claude Code / External Agent |
 |---|---|---|
 | **Entry point** | `POST /chat` → `agent.py` | `GET /mcp/sse` → `mcp_server.py` |
-| **Who decides which tools to call** | Claude (via Anthropic API in `agent.py`) | The external MCP client |
+| **Who decides which tools to call** | Claude (via LiteLLM in `agent.py`) | The external MCP client |
 | **Session / context** | Client sends full history each turn | No session — each tool call is independent |
 | **Tool execution** | `execute_tool()` in `tools.py` | Same `execute_tool()` |
 | **Data sources** | governance-service:8002 + ClickHouse:9000 | Same |
@@ -259,7 +259,7 @@ The monitor runs as a background `asyncio.Task` started at service startup. Ever
 
    > **Why this matters:** The original implementation used a 30-minute time window for dedup. Because governance signals like circuit breakers and low trust scores represent continuous state rather than discrete events, a persistent condition would generate a new finding every 30 minutes (48 per day, 336 per week). The Live Findings panel would fill with duplicate rows for the same underlying issue. State-based dedup fixes this.
 
-4. **Generate RCA** — calls Claude Sonnet (`generate_rca()` in `agent.py`) with a structured JSON summary of the signal data. This is a **separate, direct Claude API call** — not the chat agent, no tool use loop, no conversation history. The system prompt instructs Claude to return only a JSON object with:
+4. **Generate RCA** — calls Claude Sonnet via LiteLLM (`generate_rca()` in `agent.py`) with a structured JSON summary of the signal data. This is a **separate, one-shot LiteLLM call** — not the chat agent, no tool use loop, no conversation history. The system prompt instructs Claude to return only a JSON object with:
    - `severity` — `critical | high | medium | low` (may override the default)
    - `summary` — 2-sentence plain-English description
    - `rca` — 2-sentence root cause analysis
@@ -306,9 +306,9 @@ Returns: { "response": "...", "tool_calls": [{name, inputs, result}, ...] }
 
 ### Tool use loop
 
-The agent uses the Anthropic SDK with tool use. Each chat turn:
+The agent uses LiteLLM with tool use (routed to Claude Sonnet via `anthropic/` prefix). Each chat turn:
 
-1. Sends the full conversation history + user message + all 39 tool schemas to Claude Sonnet
+1. Sends the full conversation history + user message + all 44 tool schemas to Claude Sonnet
 2. If the model returns `stop_reason: "tool_use"`, executes each requested tool, appends results, calls again
 3. Repeats up to 10 tool-call rounds per turn (handles complex multi-source queries)
 4. Returns the final text response and a list of all tools called with their inputs and truncated results (for the expandable disclosure in the UI)
@@ -371,7 +371,7 @@ After adding, any Claude Code session can call EvalGov tools directly. Examples:
 
 ### Exposed tools (44 total)
 
-All 39 tools are available to both the Chat UI (via Claude's tool use) and MCP clients.
+All 44 tools are available to both the Chat UI (via Claude's tool use) and MCP clients.
 
 **Governance enforcement** (via governance-service REST)
 
@@ -396,7 +396,7 @@ All 39 tools are available to both the Chat UI (via Claude's tool use) and MCP c
 | `get_gate_audit_log` | Gate check summary |
 | `get_policy_violations` | Policy engine violation summary |
 | `get_safety_events` | Safety rule violations including matched_text |
-| `get_thresholds` | All 98 configurable governance thresholds with current values |
+| `get_thresholds` | All 34 configurable governance thresholds with current values |
 | `get_agent_budgets` | Token budgets, cost limits, and today's usage per agent |
 | `get_version_pins` | Model version pin configuration per agent |
 | `get_lifecycle_changes` | Configuration change audit log |
