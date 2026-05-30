@@ -1,11 +1,19 @@
-# Governance Instrumentation Guide — Phase 2 Pre-Execution Enforcement
+# Governance Instrumentation Guide — Pre-Execution Enforcement
 
-How to instrument agent systems with the `GovernedToolkit` SDK for Phase 2
-pre-execution governance enforcement. Assessed May 2026.
+How to instrument agent systems with the `GovernedToolkit` SDK for
+pre-execution governance enforcement.
+
+> **Enforcement is a single capability in two layers.** "Phase 1" refers to
+> the reactive layer — trust scores, burn rates, rogue detection, circuit
+> breakers — which detects and responds to violations after they happen.
+> "Phase 2" refers to the preventive layer — the gate check SDK — which
+> blocks agents *before* they run based on the signals Phase 1 has already
+> computed. Both layers are part of the same enforcement system and run
+> together. This guide covers Phase 2 instrumentation.
 
 ---
 
-## What Phase 2 Adds
+## How Enforcement Works
 
 Phase 1 (trust scores, burn rates, rogue detection, circuit breakers) is **reactive** —
 it detects and responds to violations after they happen.
