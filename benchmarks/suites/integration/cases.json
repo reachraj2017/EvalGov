@@ -1,0 +1,81 @@
+[
+  {
+    "benchmark_id": "integration-001",
+    "suite": "integration",
+    "name": "Multi-step research task",
+    "task_input": "Research the current state of large language model context windows. Find the top 3 models by context length, summarise their key differences, and produce a markdown comparison table.",
+    "expected_output": "",
+    "rubric": {
+      "criteria": [
+        "identifies at least 3 LLMs with context window information",
+        "context lengths are plausible and up-to-date",
+        "produces a valid markdown table with model name, context length, and at least one other attribute",
+        "summary paragraph is factually coherent",
+        "cites or references sources for the data"
+      ]
+    },
+    "difficulty": "medium",
+    "tags": ["research", "multi-step", "markdown", "summarization"],
+    "expected_min_steps": 3
+  },
+  {
+    "benchmark_id": "integration-002",
+    "suite": "integration",
+    "name": "Tool-use pipeline: web search + code execution",
+    "task_input": "Find the current EUR/USD exchange rate, then write a Python snippet that converts a list of amounts [100, 250, 500, 1000] from EUR to USD using that rate, and show the output.",
+    "expected_output": "",
+    "rubric": {
+      "criteria": [
+        "calls a search or lookup tool to retrieve the exchange rate",
+        "retrieved rate is numerically plausible (0.9 – 1.3 range)",
+        "Python snippet is syntactically valid",
+        "conversion logic multiplies each amount by the rate",
+        "output or sample output for all four amounts is shown",
+        "no hard-coded placeholder rate is used (rate must come from tool)"
+      ]
+    },
+    "difficulty": "medium",
+    "tags": ["tool-use", "code", "web-search", "pipeline"],
+    "expected_min_steps": 2
+  },
+  {
+    "benchmark_id": "integration-003",
+    "suite": "integration",
+    "name": "Multi-turn reasoning: root cause analysis",
+    "task_input": "A web service is returning HTTP 503 errors intermittently. Walk through a structured root-cause analysis: (1) list 5 plausible causes, (2) rank them by likelihood, (3) propose a diagnostic runbook for the top 2 causes, and (4) suggest a remediation plan for each.",
+    "expected_output": "",
+    "rubric": {
+      "criteria": [
+        "lists exactly 5 distinct plausible causes",
+        "provides a ranked ordering with justification",
+        "diagnostic runbook covers at least 3 steps per cause",
+        "remediation plan is actionable and specific",
+        "reasoning is internally consistent across all four phases",
+        "uses correct technical terminology for distributed systems"
+      ]
+    },
+    "difficulty": "hard",
+    "tags": ["reasoning", "multi-turn", "ops", "structured-output"],
+    "expected_min_steps": 4
+  },
+  {
+    "benchmark_id": "integration-004",
+    "suite": "integration",
+    "name": "Data transformation pipeline",
+    "task_input": "You are given the following CSV data:\n\nname,score,grade\nAlice,92,A\nBob,74,C\nCarol,88,B\nDave,61,D\nEve,95,A\n\nPerform the following transformations: (1) filter to only students with grade A or B, (2) add a column 'pass' that is True for score >= 70, (3) compute the mean score of the filtered set, (4) output the result as a JSON array with all original fields plus 'pass' and a top-level 'mean_score' key.",
+    "expected_output": "",
+    "rubric": {
+      "criteria": [
+        "correctly filters to Alice, Carol, and Eve (3 rows)",
+        "'pass' column is True for all retained rows",
+        "mean_score is correctly calculated as (92+88+95)/3 = 91.67",
+        "output is valid JSON",
+        "JSON array contains all original fields plus 'pass'",
+        "top-level 'mean_score' key is present in the JSON output"
+      ]
+    },
+    "difficulty": "medium",
+    "tags": ["data", "transformation", "json", "csv", "pipeline"],
+    "expected_min_steps": 5
+  }
+]

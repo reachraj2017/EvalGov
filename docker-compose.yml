@@ -1,0 +1,168 @@
+services:
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.3
+    container_name: aieval-clickhouse
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - ./data/clickhouse:/var/lib/clickhouse
+      - ./infra/clickhouse/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./infra/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml
+    environment:
+      CLICKHOUSE_DB: otel
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ""
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    container_name: aieval-jaeger
+    ports:
+      - "16686:16686"
+      - "14250:14250"
+      - "14268:14268"
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+      SPAN_STORAGE_TYPE: badger
+      BADGER_EPHEMERAL: "false"
+      BADGER_DIRECTORY_VALUE: /badger/data
+      BADGER_DIRECTORY_KEY: /badger/key
+    volumes:
+      - ./data/jaeger:/badger
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:16686"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.100.0
+    container_name: aieval-otelcol
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "8888:8888"
+    volumes:
+      - ./infra/otelcol/config.yaml:/etc/otelcol-contrib/config.yaml
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      jaeger:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+
+  eval-runner:
+    build:
+      context: ./eval_runner
+      dockerfile: Dockerfile
+    container_name: aieval-eval-runner
+    ports:
+      - "8000:8000"
+    environment:
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: "9000"
+      CLICKHOUSE_DB: otel
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ""
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      JUDGE_MODEL: ${JUDGE_MODEL:-anthropic/claude-haiku-4-5-20251001}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://localhost:11434}
+      LOG_LEVEL: INFO
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  evalgov-agent:
+    build:
+      context: ./evalgov_agent
+      dockerfile: Dockerfile
+    container_name: aieval-evalgov-agent
+    ports:
+      - "8003:8003"
+    environment:
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: "9000"
+      CLICKHOUSE_DB: otel
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ""
+      GOVERNANCE_SERVICE_URL: http://governance-service:8002
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      AGENT_MODEL: ${AGENT_MODEL:-anthropic/claude-sonnet-4-6}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://localhost:11434}
+      MONITOR_POLL_SECONDS: "60"
+      HITL_TIMEOUT_MINUTES: "15"
+      LOG_LEVEL: INFO
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      governance-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8003/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  eval-ui:
+    build:
+      context: ./eval_ui
+      dockerfile: Dockerfile
+    container_name: aieval-eval-ui
+    ports:
+      - "8501:8501"
+    environment:
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: "8123"
+      CLICKHOUSE_DB: otel
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ""
+      EVAL_RUNNER_URL: http://eval-runner:8000
+      GOVERNANCE_SERVICE_URL: http://governance-service:8002
+      EVALGOV_AGENT_URL: http://evalgov-agent:8003
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      eval-runner:
+        condition: service_healthy
+
+  governance-service:
+    build:
+      context: ./governance_service
+      dockerfile: Dockerfile
+    container_name: aieval-governance
+    ports:
+      - "8002:8002"
+    environment:
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: "9000"
+      CLICKHOUSE_DB: otel
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ""
+      LOG_LEVEL: INFO
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+

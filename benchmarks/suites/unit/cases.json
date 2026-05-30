@@ -1,0 +1,57 @@
+[
+  {
+    "benchmark_id": "unit-001",
+    "suite": "unit",
+    "name": "Simple factual QA",
+    "task_input": "What is the capital of France?",
+    "expected_output": "Paris",
+    "rubric": {"criteria": ["correct answer", "concise response"]},
+    "difficulty": "easy",
+    "tags": ["factual", "geography"],
+    "expected_min_steps": 1
+  },
+  {
+    "benchmark_id": "unit-002",
+    "suite": "unit",
+    "name": "JSON format compliance",
+    "task_input": "Return a JSON object with fields: name (string) and age (integer) for a person named Alice who is 30.",
+    "expected_output": "{\"name\": \"Alice\", \"age\": 30}",
+    "rubric": {"criteria": ["valid JSON", "correct field names", "correct types", "correct values"]},
+    "difficulty": "easy",
+    "tags": ["format", "json"],
+    "expected_min_steps": 1
+  },
+  {
+    "benchmark_id": "unit-003",
+    "suite": "unit",
+    "name": "Instruction following - word limit",
+    "task_input": "Explain quantum computing in exactly 3 sentences.",
+    "expected_output": "",
+    "rubric": {"criteria": ["exactly 3 sentences", "explains quantum computing", "technically accurate"]},
+    "difficulty": "medium",
+    "tags": ["instruction-following", "format"],
+    "expected_min_steps": 1
+  },
+  {
+    "benchmark_id": "unit-004",
+    "suite": "unit",
+    "name": "Structured output - list",
+    "task_input": "List the top 5 programming languages in 2024 as a numbered list.",
+    "expected_output": "",
+    "rubric": {"criteria": ["numbered list format", "exactly 5 items", "plausible languages"]},
+    "difficulty": "easy",
+    "tags": ["format", "list"],
+    "expected_min_steps": 1
+  },
+  {
+    "benchmark_id": "unit-005",
+    "suite": "unit",
+    "name": "Code generation",
+    "task_input": "Write a Python function that takes a list of integers and returns the sum of all even numbers.",
+    "expected_output": "",
+    "rubric": {"criteria": ["valid Python syntax", "correct logic for even numbers", "handles empty list", "returns sum"]},
+    "difficulty": "medium",
+    "tags": ["code", "python"],
+    "expected_min_steps": 1
+  }
+]

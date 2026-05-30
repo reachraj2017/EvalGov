@@ -1,0 +1,109 @@
+# Evaluator configuration
+# Defines which evaluators run on which span types
+# Sampling rates apply to online (production) mode only
+
+sampling:
+  online_llm_judge_rate: 1.0    # Current: 100%. For production at scale, set to 0.15 (15%) to reduce cost.
+  always_judge_on_failure: true  # Always run LLM judges on failed tasks regardless of sampling rate
+
+evaluators:
+
+  # Agent task completion evaluation
+  - match:
+      span_name: "agent.task"
+      agent_role: "*"
+    tiers:
+      - tier: 1
+        run:
+          - format_compliance
+          - step_efficiency
+          - task_success          # metric #01: task success rate
+          - agent_failure_rate    # metric #37: agent failure rate
+          - timeout_rate          # metric #42: timeout rate
+          - error_recovery_rate   # metric #38: error recovery rate
+          - context_propagation   # metric #17: context propagation fidelity
+          - trace_completeness    # metric #50: trace completeness rate
+          - dead_span_rate        # metric #56: dead span rate
+      - tier: 4
+        run:
+          - faithfulness_judge
+          - relevance_judge
+          - instruction_following_judge
+          - qa_correctness_judge      # vs expected_output (benchmark only)
+          - custom_rubric_judge       # per-benchmark rubric criteria
+          - hallucination_judge       # detects invented facts not in context
+          - toxicity_judge            # safety: harmful content, unsafe advice, role violations
+          - bias_judge                # fairness: stereotypes, unfair framing, prejudiced language
+          - coherence_judge           # logical flow, internal consistency, fluency
+          - conciseness_judge         # no padding, repetition, or off-topic content
+
+  # Tool call evaluation
+  - match:
+      span_name: "agent.tool_call"
+    tiers:
+      - tier: 1
+        run:
+          - tool_accuracy
+          - tool_selection        # granular: was the right tool selected?
+          - tool_argument_accuracy # granular: were args provided?
+          - tool_output_handling  # granular: was tool result used in response?
+          - tool_error_rate       # metric #31: tool error rate by type
+          - tool_retry_rate       # metric #35: tool retry rate
+
+  # Handoff evaluation (multi-agent)
+  - match:
+      span_name: "agent.handoff"
+    tiers:
+      - tier: 1
+        run: [handoff_success_rate]   # metric #15: handoff success rate
+      - tier: 4
+        run: [handoff_fidelity_judge]
+
+  # Role-specific: researcher agents
+  - match:
+      span_name: "agent.task"
+      agent_role: "researcher"
+    tiers:
+      - tier: 4
+        run: [faithfulness_judge]
+
+  # Role-specific: orchestrator agents
+  - match:
+      span_name: "agent.task"
+      agent_role: "orchestrator"
+    tiers:
+      - tier: 4
+        run: [handoff_fidelity_judge]
+
+regression:
+  # Alert if metric drops by more than this threshold vs baseline
+  alert_threshold: 0.05
+  # Metrics to track for regression
+  tracked_metrics:
+    - faithfulness
+    - relevance
+    - instruction_following
+    - tool_accuracy
+    - step_efficiency
+    - handoff_fidelity
+    - task_success_rate
+    - agent_failure_rate
+    - tool_error_rate
+    - tool_retry_rate
+    - handoff_success_rate
+    - timeout_rate
+    - error_recovery_rate
+    - context_propagation_fidelity
+    - trace_completeness_rate
+    - dead_span_rate
+    - qa_correctness
+    - custom_rubric
+    - tool_selection_accuracy
+    - tool_argument_accuracy
+    - hallucination_score
+    - toxicity_score
+    - bias_score
+    - coherence
+    - conciseness
+    - tool_output_handling
+    - conversation_relevancy

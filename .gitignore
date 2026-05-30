@@ -1,0 +1,44 @@
+# Data volumes (bind-mounted from docker-compose)
+data/
+
+# Environment files and secrets — never commit real keys
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.secret
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+
+# IDE and tool state
+.claude/
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/

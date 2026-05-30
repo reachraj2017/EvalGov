@@ -1,0 +1,110 @@
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  pprof:
+    endpoint: 0.0.0.0:1777
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 2s
+    send_batch_size: 1000
+
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+
+  # Enrich spans with platform metadata
+  resource:
+    attributes:
+      - key: eval.platform
+        value: "aieval-local"
+        action: insert
+
+  # Normalize SDK-specific attributes to canonical schema
+  transform/normalize:
+    error_mode: ignore
+    trace_statements:
+      - context: span
+        statements:
+          # LangChain normalization
+          - set(attributes["agent.role"], attributes["langchain.request.type"]) where attributes["langchain.request.type"] != nil
+          - set(attributes["task.input"], attributes["langchain.inputs"]) where attributes["langchain.inputs"] != nil
+          - set(attributes["task.output"], attributes["langchain.outputs"]) where attributes["langchain.outputs"] != nil
+          # AutoGen normalization
+          - set(attributes["agent.id"], attributes["autogen.agent_name"]) where attributes["autogen.agent_name"] != nil
+          - set(attributes["agent.role"], attributes["autogen.agent_type"]) where attributes["autogen.agent_type"] != nil
+          # CrewAI normalization
+          - set(attributes["task.input"], attributes["crewai.task.description"]) where attributes["crewai.task.description"] != nil
+          - set(attributes["agent.role"], attributes["crewai.agent.role"]) where attributes["crewai.agent.role"] != nil
+
+exporters:
+  # Traces + Logs + Metrics → ClickHouse
+  clickhouse:
+    endpoint: tcp://clickhouse:9000?dial_timeout=10s
+    database: otel
+    ttl: 720h
+    logs_table_name: otel_logs
+    traces_table_name: otel_traces
+    metrics_table_name: otel_metrics_gauge
+    timeout: 10s
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_interval: 30s
+      max_elapsed_time: 300s
+    sending_queue:
+      enabled: true
+      num_consumers: 4
+      queue_size: 100
+
+  # Traces → Jaeger (interactive trace UI)
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+
+  # Forward completed spans to Eval Runner for evaluation
+  otlphttp/evalrunner:
+    endpoint: http://eval-runner:8000
+    timeout: 30s
+    tls:
+      insecure: true
+    sending_queue:
+      enabled: true
+      num_consumers: 2
+      queue_size: 50
+
+  logging:
+    verbosity: basic
+
+service:
+  extensions: [health_check, pprof]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource, transform/normalize]
+      exporters: [clickhouse, otlp/jaeger, otlphttp/evalrunner]
+
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource]
+      exporters: [clickhouse]
+
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource]
+      exporters: [clickhouse]
+
+  telemetry:
+    logs:
+      level: "info"
+    metrics:
+      address: 0.0.0.0:8888

@@ -1,0 +1,64 @@
+[
+  {
+    "benchmark_id": "collab-001",
+    "suite": "collaboration",
+    "name": "Orchestrator-to-researcher-to-writer pipeline",
+    "task_input": "You are an orchestrator agent. Complete the following using a multi-agent pipeline: (1) Delegate to a researcher agent to gather key facts about the environmental impact of electric vehicles vs gasoline vehicles. (2) Pass the research findings to a writer agent to produce a 3-paragraph summary article. (3) Return the final article.",
+    "expected_output": "",
+    "rubric": {
+      "criteria": [
+        "clearly delegates research subtask to a researcher role",
+        "passes research context to writer via handoff",
+        "final output is a coherent 3-paragraph article",
+        "no redundant steps or duplicate research",
+        "handoff context contains the research findings",
+        "writer output is grounded in the research provided"
+      ]
+    },
+    "difficulty": "hard",
+    "tags": ["multi-agent", "orchestration", "handoff", "pipeline"],
+    "expected_min_steps": 4
+  },
+  {
+    "benchmark_id": "collab-002",
+    "suite": "collaboration",
+    "name": "Parallel research agents with synthesis",
+    "task_input": "You are an orchestrator. Assign two parallel research agents to independently investigate: Agent A researches the economic benefits of renewable energy. Agent B researches the technical challenges of renewable energy adoption. After both complete, synthesize their findings into a single balanced report covering both dimensions.",
+    "expected_output": "",
+    "rubric": {
+      "criteria": [
+        "creates two distinct research subtasks",
+        "economic benefits are covered with specifics",
+        "technical challenges are covered with specifics",
+        "synthesis combines both perspectives coherently",
+        "no contradiction between the two research outputs",
+        "final report is balanced (not one-sided)",
+        "identifies where economic and technical aspects intersect"
+      ]
+    },
+    "difficulty": "hard",
+    "tags": ["multi-agent", "parallel", "synthesis", "orchestration"],
+    "expected_min_steps": 5
+  },
+  {
+    "benchmark_id": "collab-003",
+    "suite": "collaboration",
+    "name": "Debate and consensus pattern",
+    "task_input": "You are coordinating a structured debate between two agents about the following proposition: 'Artificial General Intelligence will be achieved within the next 10 years.' Agent A argues FOR the proposition. Agent B argues AGAINST it. After each agent presents their argument, produce a balanced moderator summary that steelmans both sides and identifies the key points of genuine disagreement.",
+    "expected_output": "",
+    "rubric": {
+      "criteria": [
+        "Agent A produces a coherent argument supporting AGI within 10 years",
+        "Agent B produces a coherent argument against AGI within 10 years",
+        "both arguments are substantive (not strawmen)",
+        "moderator summary accurately represents both sides",
+        "moderator identifies at least 2 specific points of disagreement",
+        "moderator does not take a side",
+        "final output is clearly structured as a debate summary"
+      ]
+    },
+    "difficulty": "hard",
+    "tags": ["multi-agent", "debate", "consensus", "reasoning"],
+    "expected_min_steps": 6
+  }
+]

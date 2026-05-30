@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "opt-aieval"
+version = "0.1.0"
+description = "AI agent observability, evaluation, and governance SDK"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "opentelemetry-api>=1.24.0",
+    "opentelemetry-sdk>=1.24.0",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.24.0",
+    "opentelemetry-instrumentation-anthropic>=0.30.0",
+    "httpx>=0.25.0",
+]
+
+[project.optional-dependencies]
+langchain = [
+    "langchain-core>=0.2",
+    "opentelemetry-instrumentation-langchain>=0.30.0",
+]
+autogen = [
+    "pyautogen>=0.2",
+]
+crewai = [
+    "crewai>=0.30",
+]
+claude = [
+    "anthropic>=0.25",
+]
+openai-agents = [
+    "openai-agents>=0.0.5",
+    "opentelemetry-instrumentation-openai>=0.30.0",
+]
+all = [
+    "opt-aieval[langchain,autogen,crewai,claude,openai-agents]",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["instrumentation*"]
+
+[tool.setuptools.package-dir]
+"opt_aieval" = "."
