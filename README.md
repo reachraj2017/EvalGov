@@ -585,7 +585,7 @@ The EvalGov Agent (`:8003`) is the intelligence and interaction layer on top of 
 **MCP** — expose all tools to Claude Code and other AI agents:
 
 ```bash
-claude mcp add evalgov http://localhost:8003/mcp/sse
+claude mcp add evalgov --transport sse http://localhost:8003/mcp/sse
 ```
 
 ### Chat UI (page 14)
