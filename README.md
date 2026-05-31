@@ -847,5 +847,5 @@ python benchmarks/runner.py --suite unit --name "my-run"
 python benchmarks/runner.py --suite all --compare-baseline
 
 # Connect Claude Code to EvalGov tools via MCP
-claude mcp add evalgov http://localhost:8003/mcp/sse
+claude mcp add evalgov --transport sse http://localhost:8003/mcp/sse
 ```
