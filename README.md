@@ -206,8 +206,7 @@ opt-aieval/
 │   ├── eval-metrics-dashboard-guide.md  Filter behaviour + Option B span-level fix guide
 │   ├── evalgov-agent.md             EvalGov Agent — tool reference, chat agent, MCP server
 │   ├── governance-enforcement-architecture.md  Three-layer enforcement design
-│   ├── hitl-and-gate-ui-reference.md  HITL and gate check UI reference
-│   └── packaging-recommendations-v2.md  SDK packaging status and v1 roadmap
+│   └── hitl-and-gate-ui-reference.md  HITL and gate check UI reference
 │
 ├── infra/
 │   ├── clickhouse/
