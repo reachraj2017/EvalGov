@@ -4,7 +4,7 @@ A self-hosted platform for **evaluating, observing, and governing any multi-agen
 
 Built on: **ClickHouse · Jaeger · OpenTelemetry · FastAPI · Streamlit · Claude**
 
-<img width="1387" height="897" alt="Screenshot 2026-05-30 at 8 44 11 PM" src="https://github.com/user-attachments/assets/44496cfc-c05e-4591-ac77-52d77c334334" />
+<img width="1208" height="886" alt="Screenshot 2026-05-30 at 9 00 40 PM" src="https://github.com/user-attachments/assets/7336721d-5c14-46e6-9d16-c5bbc9613e10" />
 
 
 ---
