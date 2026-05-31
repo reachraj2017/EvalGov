@@ -2,7 +2,7 @@
 
 A self-hosted platform for **evaluating, observing, and governing any multi-agent AI system** in real time and offline. No external SaaS dependencies — everything runs locally via Docker.
 
-Built on: **ClickHouse · Jaeger · OpenTelemetry · FastAPI · Streamlit · Claude**
+Built on: **Docker · ClickHouse · Jaeger · OpenTelemetry · FastAPI · Streamlit · Claude**
 
 <img width="1208" height="886" alt="Screenshot 2026-05-30 at 9 00 40 PM" src="https://github.com/user-attachments/assets/7336721d-5c14-46e6-9d16-c5bbc9613e10" />
 
